@@ -1,0 +1,41 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: api
+    depends_on:
+      - db
+    ports:
+      - "${PORT}:${PORT}"
+    env_file:
+      - config/.env
+    networks:
+      - network
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    container_name: postgres_subs
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    networks:
+      - network
+
+volumes:
+  db_data:
+
+networks:
+  network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.18.0.0/16
